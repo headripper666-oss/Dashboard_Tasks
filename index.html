@@ -199,13 +199,47 @@ input,textarea,select{font:inherit;color:inherit;background:none}
 .t-ok{border-color:rgba(5,150,105,.3);color:var(--jade-l)}
 .t-err{border-color:rgba(234,88,12,.3);color:var(--mand-l)}
 
-@media(max-width:840px){
-.app{grid-template-columns:1fr;grid-template-rows:48px auto 1fr}
-#sidebar{grid-row:auto;height:auto;flex-direction:row;flex-wrap:wrap;padding:4px;border-right:none;border-bottom:1px solid var(--brd)}
-.sb-sec{display:none}.nb,.pi{border-radius:var(--r-md)}
-.kpi-grid{grid-template-columns:repeat(2,1fr)}
-#main{padding:14px}
-#slide-panel{display:none}
+/* MOBILE OVERLAY */
+#mobileOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:49;backdrop-filter:blur(2px)}
+#mobileOverlay.open{display:block}
+
+/* BOTTOM NAV */
+#bottomNav{display:none}
+.bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--txm);cursor:pointer;border:none;background:none;font-family:var(--f);transition:color var(--tr);flex:1;line-height:1}
+.bn-item.active{color:var(--saphir-l)}
+.bn-item svg{flex-shrink:0}
+.bs-handle{width:36px;height:4px;border-radius:2px;background:var(--brds);margin:10px auto 0;flex-shrink:0;cursor:grab}
+
+@media(max-width:700px){
+  body{overflow:hidden}
+  .app{grid-template-columns:1fr;grid-template-rows:48px 1fr;height:calc(100dvh - 56px)}
+  #btnHamburger{display:flex !important}
+  .sync-pill{display:none}
+  #sidebar{position:fixed;left:-240px;top:0;bottom:0;width:240px;z-index:50;flex-direction:column;flex-wrap:nowrap;grid-row:unset;overflow-y:auto;border-right:1px solid var(--brd);border-bottom:none;transition:left 220ms cubic-bezier(.16,1,.3,1);box-shadow:none}
+  #sidebar.mob-open{left:0;box-shadow:var(--shdL)}
+  .sb-sec{display:block}
+  .nb,.pi{border-radius:var(--r-md)}
+  #main{grid-row:2;padding:12px 10px;overflow-y:auto}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .kpi{padding:10px 12px}
+  .kpi-v{font-size:clamp(1.2rem,5vw,1.6rem)}
+  .phases-grid{grid-template-columns:1fr}
+  .prac-grid{grid-template-columns:1fr}
+  #slide-panel:not(.hidden){position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;max-height:82dvh;border-left:none;border-top:1px solid var(--brd);border-radius:var(--r-xl) var(--r-xl) 0 0;grid-row:unset;z-index:48;display:flex;flex-direction:column;box-shadow:0 -8px 32px rgba(0,0,0,.35)}
+  #slide-panel.hidden{display:none !important}
+  .sp-body{overflow-y:auto}
+  #bottomNav{display:flex;position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--sur);border-top:1px solid var(--brd);z-index:40;align-items:stretch;justify-content:space-around;padding:0 4px}
+  .pt{font-size:clamp(1.1rem,5vw,1.4rem)}
+  .ph{margin-bottom:14px}
+}
+
+@media(max-width:840px) and (min-width:701px){
+  .app{grid-template-columns:1fr;grid-template-rows:48px auto 1fr}
+  #sidebar{grid-row:auto;height:auto;flex-direction:row;flex-wrap:wrap;padding:4px;border-right:none;border-bottom:1px solid var(--brd)}
+  .sb-sec{display:none}.nb,.pi{border-radius:var(--r-md)}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  #main{padding:14px}
+  #slide-panel{display:none}
 }
 </style>
 </head>
@@ -221,6 +255,7 @@ input,textarea,select{font:inherit;color:inherit;background:none}
   </div>
   <span class="proj-sep">Projet :</span>
   <span class="proj-name" id="topProjName">—</span>
+  <button class="bic" id="btnHamburger" style="display:none;flex-shrink:0;margin-right:2px" title="Menu"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="topbar-right">
     <span class="sync-pill" id="syncPill">Local</span>
     <button class="bic" id="btnPull" title="Pull depuis Gist"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
@@ -320,6 +355,7 @@ input,textarea,select{font:inherit;color:inherit;background:none}
 
 <!-- SLIDE PANEL -->
 <aside id="slide-panel" class="hidden">
+  <div class="bs-handle" id="bsHandle"></div>
   <div class="sp-hd">
     <span class="sp-title" id="spTitle">Détail</span>
     <button class="sp-close" id="spClose">&times;</button>
@@ -328,6 +364,15 @@ input,textarea,select{font:inherit;color:inherit;background:none}
 </aside>
 
 </div><!-- .app -->
+
+<div id="mobileOverlay"></div>
+
+<nav id="bottomNav">
+  <button class="bn-item active" data-nav="overview"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Accueil</button>
+  <button class="bn-item" data-nav="phases"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Phases</button>
+  <button class="bn-item" data-nav="practices"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>Pratiques</button>
+  <button class="bn-item" data-nav="notes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Notes</button>
+</nav>
 
 <!-- MODAL ADD TASK -->
 <div class="mo" id="moTask">
@@ -793,6 +838,9 @@ function showView(v){
   document.querySelectorAll('.view').forEach(function(el){ el.classList.remove('active'); });
   var t=document.getElementById('view-'+v); if(t) t.classList.add('active');
   document.querySelectorAll('.nb[data-nav]').forEach(function(b){ b.classList.toggle('active',b.dataset.nav===v); });
+  document.querySelectorAll('.bn-item[data-nav]').forEach(function(b){ b.classList.toggle('active',b.dataset.nav===v); });
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('mobileOverlay').classList.remove('open');
 }
 
 // ── SLIDE PANEL ──
@@ -1174,6 +1222,19 @@ renderAll();
 
 // Auto-pull conditionnel à l'ouverture
 (function(){ try{ var s=APP.data.settings||{}; if(s.gistToken && s.gistId){ if(s.hasUnsyncedLocal){ showToast('Tu as des changements locaux non poussés. Pense à Push ou Pull.','err'); } else { syncPull(true); } } }catch(e){} })();
+
+// -- MOBILE HANDLERS --
+(function(){
+  var burger=document.getElementById('btnHamburger');
+  var overlay=document.getElementById('mobileOverlay');
+  var sidebar=document.getElementById('sidebar');
+  burger.addEventListener('click',function(){ sidebar.classList.toggle('mob-open'); overlay.classList.toggle('open'); });
+  overlay.addEventListener('click',function(){ sidebar.classList.remove('mob-open'); overlay.classList.remove('open'); });
+  var bsHandle=document.getElementById('bsHandle');
+  var startY=null;
+  bsHandle.addEventListener('touchstart',function(e){ startY=e.touches[0].clientY; },{passive:true});
+  bsHandle.addEventListener('touchend',function(e){ if(startY!==null && e.changedTouches[0].clientY-startY>60){ closePanel(); } startY=null; },{passive:true});
+})();
 
 window.addEventListener('beforeunload',function(e){ try{ if(APP && APP.hasUnsynced){ e.preventDefault(); e.returnValue='Tu as des changements locaux non poussés vers GitHub.'; } }catch(err){} });
 </script>
